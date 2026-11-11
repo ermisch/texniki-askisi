@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Τεχνική άσκηση Caravel</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>
+/* Layout: sticky header with section clock, one tab per timed part; code box and results side by side, stacked on phones */
+:root{
+  --bg:#f6f7f8; --surface:#ffffff; --fg:#1b2329; --muted:#56646e; --line:#dce2e6;
+  --accent:#0b6b73; --accent-soft:#e2f1f2; --ok:#17673a; --bad:#a3261f;
+  --warn:#8a4b00; --warn-soft:#fbefd9; --code-bg:#eef1f3;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12181c; --surface:#1a2227; --fg:#e4e9ec; --muted:#9aa9b2; --line:#2c373d;
+  --accent:#5cc3cb; --accent-soft:#17343a; --ok:#6ad596; --bad:#f08a82;
+  --warn:#f0b866; --warn-soft:#3a2d14; --code-bg:#0e1316; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12181c; --surface:#1a2227; --fg:#e4e9ec; --muted:#9aa9b2; --line:#2c373d;
+  --accent:#5cc3cb; --accent-soft:#17343a; --ok:#6ad596; --bad:#f08a82;
+  --warn:#f0b866; --warn-soft:#3a2d14; --code-bg:#0e1316; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:1120px;margin:0 auto;padding-block:0 48px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--surface);border-bottom:1px solid var(--line);
+  margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:10px max(16px,env(safe-area-inset-left,0px)) 0}
+.hrow{max-width:1120px;margin:0 auto;display:flex;flex-wrap:wrap;gap:6px 20px;align-items:baseline;justify-content:space-between}
+h1{font-size:17px;margin:0;font-weight:600}
+.stats{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.stats b{color:var(--fg);font-weight:600}
+.stats b.over{color:var(--bad)}
+nav{display:flex;gap:4px;max-width:1120px;margin:6px auto 0;overflow-x:auto}
+nav button{flex:none;font:inherit;font-size:14px;font-weight:500;padding:9px 12px;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer}
+nav button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+nav button:disabled{opacity:.45;cursor:default}
+button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.panel{display:none;padding-top:18px}.panel.on{display:block}
+.rules{background:var(--warn-soft);border-left:3px solid var(--warn);padding:10px 14px;margin:0 0 16px;font-size:14px;max-width:70ch}
+.rules b{color:var(--warn)}
+.rules ul{margin:6px 0 0;padding-left:20px}
+.prose{max-width:72ch}
+.prose h2{font-size:18px;margin:0 0 8px}
+table.plan{border-collapse:collapse;font-size:14px;margin:8px 0 16px}
+table.plan td,table.plan th{border:1px solid var(--line);padding:6px 10px;text-align:left}
+table.plan th{background:var(--accent-soft)}
+.cols{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:820px){.cols{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:4px;min-width:0}
+.card h2{font-size:14px;margin:0;padding:10px 12px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center}
+textarea#code{display:block;width:100%;box-sizing:border-box;height:540px;resize:vertical;border:0;padding:12px;background:var(--code-bg);color:var(--fg);
+  font-family:var(--mono);font-size:13px;line-height:1.5;tab-size:2;white-space:pre;overflow:auto}
+textarea.answer{display:block;width:100%;max-width:820px;box-sizing:border-box;min-height:96px;resize:vertical;border:1px solid var(--line);border-radius:4px;padding:10px 12px;
+  background:var(--surface);color:var(--fg);font:inherit;font-size:14.5px;line-height:1.5}
+textarea.answer[readonly]{background:var(--code-bg);color:var(--muted)}
+label.ask{display:block;font-weight:600;font-size:14.5px;margin:14px 0 6px;max-width:72ch}
+.bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:10px 12px;border-top:1px solid var(--line)}
+button.run{font:inherit;font-size:14px;font-weight:600;padding:8px 16px;border:0;border-radius:4px;background:var(--accent);color:var(--bg);cursor:pointer}
+button.ghost{font:inherit;font-size:13px;padding:7px 12px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--fg);cursor:pointer}
+.msg{font-size:13px;color:var(--muted)}
+.summary{padding:10px 12px;font-weight:600;font-variant-numeric:tabular-nums}
+ul.res{list-style:none;margin:0;padding:0;max-height:540px;overflow:auto}
+ul.res li{padding:8px 12px;border-top:1px solid var(--line);font-size:13px;display:grid;grid-template-columns:20px minmax(0,1fr);gap:6px}
+ul.res li.ok .m{color:var(--ok)}ul.res li.bad .m{color:var(--bad)}
+ul.res .n{overflow-wrap:anywhere}
+ul.res .d{grid-column:2;color:var(--muted);font-size:12px;font-family:var(--mono);overflow-wrap:anywhere}
+.empty{padding:14px 12px;color:var(--muted);font-size:13px}
+pre.snip{background:var(--code-bg);border:1px solid var(--line);border-radius:4px;padding:12px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.5;margin:8px 0}
+fieldset.q{border:1px solid var(--line);border-radius:4px;background:var(--surface);margin:0 0 14px;padding:12px 14px;max-width:820px;min-width:0}
+fieldset.q legend{font-weight:600;padding:0 6px;font-size:14px}
+fieldset.q p{margin:0 0 6px}
+.opt{display:flex;gap:8px;align-items:flex-start;padding:5px 0;font-size:14px}
+.opt input{margin-top:4px;flex:none}
+.opt span{font-family:var(--mono);font-size:13px;overflow-wrap:anywhere;min-width:0}
+.opt span.t{font-family:var(--sans);font-size:14px}
+.next{margin:12px 0 0;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+table.sum{border-collapse:collapse;font-size:14px;margin:8px 0;font-variant-numeric:tabular-nums}
+table.sum td,table.sum th{border:1px solid var(--line);padding:7px 12px;text-align:left;vertical-align:top}
+table.sum th{background:var(--accent-soft);font-weight:600}
+pre#sumtext{background:var(--code-bg);border:1px solid var(--line);border-radius:4px;padding:12px;font-family:var(--mono);font-size:12.5px;white-space:pre-wrap;overflow-wrap:anywhere;max-width:820px}
+ol.lines{background:var(--code-bg);border:1px solid var(--line);border-radius:4px;margin:8px 0;padding:10px 10px 10px 54px;font-family:var(--mono);font-size:13px;line-height:1.5;overflow-x:auto;max-height:360px}
+ol.lines li{white-space:pre;padding-left:8px}
+ol.lines li::marker{color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:4px;font-size:13px;z-index:20;max-width:90vw}
+.sr{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header class="top">
+  <div class="hrow">
+    <h1>Τεχνική άσκηση — Caravel</h1>
+    <div class="stats" aria-label="Στοιχεία της προσπάθειας">
+      <span>Ενότητα <b id="t-sec">—</b></span>
+      <span>Σύνολο <b id="t-total">00:00</b> / 20:00</span>
+      <span>Αλλαγές καρτέλας <b id="s-blur">0</b></span>
+      <span>Επικολλήσεις που απορρίφθηκαν <b id="s-paste">0</b></span>
+    </div>
+  </div>
+  <nav role="tablist" aria-label="Μέρη της άσκησης">
+    <button role="tab" data-p="intro" aria-selected="true">Οδηγίες</button>
+    <button role="tab" data-p="quiz" aria-selected="false" disabled>1 · Ερωτήσεις (4')</button>
+    <button role="tab" data-p="code" aria-selected="false" disabled>2 · Κώδικας (9')</button>
+    <button role="tab" data-p="review" aria-selected="false" disabled>3 · Αξιολόγηση κώδικα (3')</button>
+    <button role="tab" data-p="explain" aria-selected="false" disabled>4 · Εξήγηση (3')</button>
+    <button role="tab" data-p="end" aria-selected="false" disabled>Τέλος</button>
+  </nav>
+</header>
+
+<!-- ============ ΟΔΗΓΙΕΣ ============ -->
+<section class="panel on" id="p-intro">
+  <div class="prose">
+    <h2>Τέσσερα μέρη, είκοσι λεπτά</h2>
+    <p>Δεν περιμένουμε να τα ολοκληρώσεις όλα. Μας ενδιαφέρει περισσότερο να είναι σωστό αυτό που θα κάνεις παρά να προλάβεις πολλά.</p>
+  </div>
+  <table class="plan">
+    <tr><th>Μέρος</th><th>Διάρκεια</th><th>Τι θα κάνεις</th></tr>
+    <tr><td>1 · Ερωτήσεις</td><td>4 λεπτά</td><td>Επτά σύντομες ερωτήσεις πολλαπλής επιλογής</td></tr>
+    <tr><td>2 · Κώδικας</td><td>9 λεπτά</td><td>Διορθώνεις και γράφεις κώδικα JavaScript, με αυτόματες δοκιμές</td></tr>
+    <tr><td>3 · Αξιολόγηση κώδικα</td><td>3 λεπτά</td><td>Εντοπίζεις προβλήματα σε κώδικα που έγραψε κάποιος άλλος</td></tr>
+    <tr><td>4 · Εξήγηση</td><td>3 λεπτά</td><td>Εξηγείς γραπτά τον κώδικά σου</td></tr>
+  </table>
+  <div class="rules"><b>Κανόνες</b>
+    <ul>
+      <li>Δεν επιτρέπεται η χρήση τεχνητής νοημοσύνης (ChatGPT, Copilot και παρόμοια) ούτε η βοήθεια από άλλο άτομο.</li>
+      <li>Το κινητό μένει μακριά από το γραφείο.</li>
+      <li>Μοιράζεσαι ολόκληρη την οθόνη σου και παραμένεις σε αυτή την καρτέλα.</li>
+      <li>Η επικόλληση κειμένου από άλλη πηγή είναι απενεργοποιημένη.</li>
+      <li>Αν κάτι δεν είναι σαφές, ρώτησε.</li>
+    </ul>
+  </div>
+  <div class="next"><button class="run" id="start" type="button">Έναρξη</button><span class="msg">Ο χρόνος αρχίζει να μετρά μόλις πατήσεις.</span></div>
+</section>
+
+<!-- ============ ΕΡΩΤΗΣΕΙΣ ============ -->
+<section class="panel" id="p-quiz">
+  <div class="prose"><p>Επίλεξε μία απάντηση σε κάθε ερώτηση, χωρίς να εκτελέσεις τον κώδικα. Τα αποτελέσματα εμφανίζονται στο τέλος.</p></div>
+  <div id="quiz"></div>
+  <div class="next"><button class="run" type="button" data-go="code">Συνέχεια στο μέρος 2</button><span class="msg" id="quizcount"></span></div>
+</section>
+
+<!-- ============ ΚΩΔΙΚΑΣ ============ -->
+<section class="panel" id="p-code">
+  <div class="prose">
+    <p>Είμαστε εταιρεία ενοικίασης αυτοκινήτων. Ο πελάτης επιλέγει ημερομηνία παραλαβής και επιστροφής, και το σύστημα πρέπει να του δείξει ποια αυτοκίνητα είναι διαθέσιμα.</p>
+    <p>Ακολούθησε τα βήματα με τη σειρά: στο βήμα 1 διορθώνεις τη συνάρτηση <code>overlaps</code>, στο βήμα 2 γράφεις τη <code>rentalDays</code> και στο βήμα 3 τη <code>findAvailableCars</code>. Μπορείς να πατάς «Εκτέλεση δοκιμών» όσες φορές θέλεις.</p>
+  </div>
+  <div class="cols">
+    <div class="card">
+      <h2><span>availability.js</span><span class="msg">Αποθηκεύεται αυτόματα</span></h2>
+      <label class="sr" for="code">Κώδικας</label>
+      <textarea id="code" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+      <div class="bar">
+        <button class="run" id="run" type="button">Εκτέλεση δοκιμών</button>
+        <span class="msg" id="runmsg"></span>
+        <span class="msg">Εκτελέσεις: <b id="s-runs">0</b></span>
+      </div>
+    </div>
+    <div class="card">
+      <h2><span>Αποτελέσματα δοκιμών</span></h2>
+      <div class="summary" id="summary">—</div>
+      <ul class="res" id="results"><li class="empty">Δεν έχεις εκτελέσει ακόμη τις δοκιμές.</li></ul>
+    </div>
+  </div>
+  <div class="next"><button class="run" type="button" data-go="review">Συνέχεια στο μέρος 3</button></div>
+</section>
+
+<!-- ============ ΑΞΙΟΛΟΓΗΣΗ ΚΩΔΙΚΑ ============ -->
+<section class="panel" id="p-review">
+  <div class="prose">
+    <p>Ο παρακάτω κώδικας γράφτηκε από έναν συνάδελφο και καταχωρίζει μια νέα κράτηση. Γράψε στο πλαίσιο ποια προβλήματα εντοπίζεις. Όταν τελειώσεις, πάτησε «Εμφάνιση λίστας» για το δεύτερο σκέλος. Μετά την εμφάνιση της λίστας το κείμενό σου δεν μπορεί να αλλάξει.</p>
+  </div>
+  <pre class="snip">app.post('/api/book', async (req, res) => {
+  const { carId, start, end, pricePerDay, email, couponPercent } = req.body;
+
+  const days = (new Date(end) - new Date(start)) / 86400000;
+  const total = days * pricePerDay * (1 - couponPercent / 100);
+
+  const rows = await db.query(
+    `SELECT * FROM bookings WHERE car_id = ${carId} AND start_at &lt; '${end}' AND end_at &gt; '${start}'`
+  );
+  if (rows.length === 0) {
+    await db.query(
+      `INSERT INTO bookings (car_id, start_at, end_at, status, total_cents)
+       VALUES (${carId}, '${start}', '${end}', 'confirmed', ${total * 100})`
+    );
+    console.log('New booking for', email, req.body);
+    res.json({ ok: true, total });
+  } else {
+    res.json({ ok: false });
+  }
+});</pre>
+  <label class="ask" for="recall">Τα προβλήματα που εντοπίζεις</label>
+  <textarea class="answer" id="recall" placeholder="Ένα πρόβλημα ανά γραμμή αρκεί."></textarea>
+  <div class="next" id="revealrow"><button class="ghost" id="reveal" type="button">Εμφάνιση λίστας</button></div>
+  <fieldset class="q" id="reviewlist" hidden style="margin-top:14px">
+    <legend>Ποια από τα παρακάτω είναι πραγματικά προβλήματα του κώδικα; Επίλεξε όσα ισχύουν. Κάθε λανθασμένη επιλογή αφαιρεί έναν βαθμό.</legend>
+    <div id="reviewopts"></div>
+  </fieldset>
+  <div class="next"><button class="run" type="button" data-go="explain">Συνέχεια στο μέρος 4</button></div>
+</section>
+
+<!-- ============ ΕΞΗΓΗΣΗ ============ -->
+<section class="panel" id="p-explain">
+  <div class="prose"><p>Παρακάτω βλέπεις τον κώδικά σου με αριθμημένες γραμμές. Απάντησε σύντομα στις δύο ερωτήσεις.</p></div>
+  <ol class="lines" id="lines"></ol>
+  <label class="ask" for="ex1">Εξήγησε με απλά λόγια, σαν να μιλάς σε κάποιον που δεν γνωρίζει προγραμματισμό, τι κάνει ο κώδικας που έγραψες ή διόρθωσες.</label>
+  <textarea class="answer" id="ex1"></textarea>
+  <label class="ask" for="ex2">Τι δεν πρόλαβες να ολοκληρώσεις και πώς θα συνέχιζες;</label>
+  <textarea class="answer" id="ex2"></textarea>
+  <div class="next"><button class="run" id="finish" type="button">Ολοκλήρωση και εμφάνιση σύνοψης</button><span class="msg" id="finmsg"></span></div>
+</section>
+
+<!-- ============ ΤΕΛΟΣ ============ -->
+<section class="panel" id="p-end">
+  <div class="prose"><h2>Σύνοψη</h2><p id="endhint">Η σύνοψη θα εμφανιστεί όταν πατήσεις «Ολοκλήρωση και εμφάνιση σύνοψης» στο μέρος 4.</p></div>
+  <div id="sumwrap" hidden>
+    <table class="sum" id="sumtable"></table>
+    <div class="prose"><p>Αντίγραψε τη σύνοψη και επικόλλησέ την στη συνομιλία της κλήσης.</p></div>
+    <pre id="sumtext"></pre>
+    <div class="next"><button class="run" id="copysum" type="button">Αντιγραφή σύνοψης</button>
+      <button class="ghost" id="resetall" type="button">Νέα προσπάθεια (διαγραφή όλων)</button></div>
+  </div>
+</section>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script type="text/plain" id="starter">'use strict';
+
+/**
+ * ΒΗΜΑ 1 — Διόρθωσε τη συνάρτηση.
+ * Ελέγχει αν δύο χρονικά διαστήματα επικαλύπτονται.
+ * Κάθε διάστημα περιλαμβάνει την αρχή του αλλά όχι το τέλος του. Αν λοιπόν το
+ * ένα τελειώνει ακριβώς τη στιγμή που αρχίζει το άλλο, δεν επικαλύπτονται.
+ * Οι ημερομηνίες δίνονται ως κείμενο σε μορφή ISO-8601 και μπορεί να είναι
+ * γραμμένες σε διαφορετική ζώνη ώρας. Για παράδειγμα, το
+ * '2026-07-05T13:00:00+03:00' και το '2026-07-05T10:00:00Z' είναι η ίδια
+ * χρονική στιγμή.
+ * Η συνάρτηση δεν περνά όλες τις δοκιμές. Βρες τον λόγο και διόρθωσέ την.
+ */
+function overlaps(a, b) {
+  return a.start <= b.end && b.start <= a.end;
+}
+
+/**
+ * ΒΗΜΑ 2 — Γράψε τη συνάρτηση.
+ * Επιστρέφει πόσες ημέρες ενοικίασης χρεώνονται.
+ * Κάθε 24ωρο που έχει αρχίσει χρεώνεται ως ολόκληρη ημέρα:
+ * 24 ώρες → 1 ημέρα, 24 ώρες και 1 λεπτό → 2 ημέρες.
+ * Αν το end δεν είναι μετά το start, ή αν κάποια ημερομηνία δεν είναι έγκυρη,
+ * η συνάρτηση πρέπει να κάνει throw new Error(...).
+ */
+function rentalDays(start, end) {
+  // TODO
+}
+
+/**
+ * ΒΗΜΑ 3 — Γράψε τη συνάρτηση.
+ * Επιστρέφει τα αυτοκίνητα που είναι διαθέσιμα σε όλο το διάστημα από start
+ * έως end.
+ *
+ * - Αυτοκίνητο: { id: 'c1', category: 'economy' }
+ * - Κράτηση:    { id: 'b1', carId: 'c1', start: '...', end: '...', status: 'confirmed' | 'cancelled' }
+ * - Οι ακυρωμένες κρατήσεις ('cancelled') δεν δεσμεύουν το αυτοκίνητο.
+ * - Αν δοθεί options.category, επιστρέφονται μόνο τα αυτοκίνητα αυτής της κατηγορίας.
+ * - Το αποτέλεσμα είναι πίνακας (array) με αυτοκίνητα, ταξινομημένος κατά id
+ *   σε αύξουσα σειρά.
+ * - Οι πίνακες που δέχεται η συνάρτηση δεν πρέπει να αλλάξουν.
+ * - Αν το διάστημα δεν είναι έγκυρο, η συνάρτηση πρέπει να κάνει throw new Error(...).
+ */
+function findAvailableCars(cars, bookings, start, end, options = {}) {
+  // TODO
+}
+
+module.exports = { overlaps, rentalDays, findAvailableCars };
+</script>
+
+<script>
+(function(){
+  'use strict';
+  function $(id){return document.getElementById(id);}
+  function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
+  function mmss(s){var m=Math.floor(s/60),r=s%60;return (m<10?'0':'')+m+':'+(r<10?'0':'')+r;}
+  function toast(t){var e=$('toast');e.textContent=t;e.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(function(){e.hidden=true;},3500);}
+  var starter=$('starter').textContent, code=$('code');
+
+  /* ---------- περιεχόμενο ---------- */
+  var QUIZ=[
+    {q:'Τι θα εμφανίσει ο παρακάτω κώδικας;',code:'const x = [1, 2, 3];\nconst y = x;\ny.push(4);\nconsole.log(x.length);',opts:['3','4','undefined','Σφάλμα (TypeError)'],a:1},
+    {q:'Τι θα εμφανίσει ο παρακάτω κώδικας;',code:'console.log([10, 9, 1].sort());',opts:['[1, 9, 10]','[10, 9, 1]','[1, 10, 9]','Σφάλμα'],a:2},
+    {q:'Με ποια σειρά θα εμφανιστούν τα γράμματα;',code:"console.log('a');\nsetTimeout(() => console.log('b'), 0);\nPromise.resolve().then(() => console.log('c'));\nconsole.log('d');",opts:['a b c d','a d b c','a c d b','a d c b'],a:3},
+    {q:'Τι θα εμφανίσει ο παρακάτω κώδικας;',code:'console.log(0.1 + 0.2 === 0.3);',opts:['true','false','undefined','Σφάλμα'],a:1},
+    {q:'Υπάρχουν οι πίνακες cars(id, plate, category) και bookings(id, car_id, start_at, end_at, status). Ποιο ερώτημα SQL επιστρέφει τα αυτοκίνητα που δεν έχουν καμία κράτηση με status = \'confirmed\';',
+      opts:[
+        "SELECT c.* FROM cars c JOIN bookings b ON b.car_id = c.id WHERE b.status <> 'confirmed';",
+        "SELECT * FROM cars WHERE id NOT IN (SELECT id FROM bookings WHERE status = 'confirmed');",
+        "SELECT c.* FROM cars c WHERE NOT EXISTS (SELECT 1 FROM bookings b WHERE b.car_id = c.id AND b.status = 'confirmed');",
+        "SELECT c.* FROM cars c LEFT JOIN bookings b ON b.car_id = c.id WHERE b.status = 'confirmed' AND b.id IS NULL;"],a:2},
+    {q:'Ένας πελάτης ζητά να κλείσει ένα αυτοκίνητο που μόλις το έκλεισε κάποιος άλλος. Ποιος κωδικός απάντησης HTTP είναι ο καταλληλότερος;',
+      opts:['200 OK','302 Found','409 Conflict','500 Internal Server Error'],a:2,plain:true},
+    {q:'Πώς πρέπει να αποθηκεύονται στη βάση δεδομένων οι κωδικοί πρόσβασης των χρηστών;',
+      opts:['Ως απλό κείμενο, εφόσον η βάση προστατεύεται με κωδικό','Κωδικοποιημένοι σε Base64','Κρυπτογραφημένοι με κλειδί, ώστε να μπορούμε να τους διαβάσουμε ξανά','Ως hash, με αλγόριθμο όπως ο bcrypt ή ο argon2'],a:3,plain:true}
+  ];
+  var REVIEW=[
+    {t:'Οι τιμές που στέλνει ο χρήστης ενσωματώνονται ως κείμενο στο ερώτημα SQL (SQL injection).',real:true},
+    {t:'Η λέξη async δεν επιτρέπεται σε συνάρτηση που χειρίζεται αίτημα στο Express.',real:false},
+    {t:'Η τιμή ανά ημέρα και η έκπτωση του κουπονιού έρχονται από τον πελάτη, που μπορεί να στείλει ό,τι θέλει.',real:true},
+    {t:'Δύο αιτήματα που φτάνουν ταυτόχρονα μπορούν να κλείσουν το ίδιο αυτοκίνητο, επειδή ο έλεγχος και η καταχώριση γίνονται σε ξεχωριστά βήματα.',real:true},
+    {t:'Το const πρέπει να γίνει var για να λειτουργήσει η πρώτη γραμμή της συνάρτησης.',real:false},
+    {t:'Προσωπικά δεδομένα (το email και ολόκληρο το αίτημα) γράφονται στα αρχεία καταγραφής.',real:true},
+    {t:'Το Node.js δεν υποστηρίζει κείμενο μέσα σε ανάποδα εισαγωγικά (`…`).',real:false},
+    {t:'Δεν ελέγχεται αν οι ημερομηνίες είναι έγκυρες και αν το end είναι μετά το start.',real:true}
+  ];
+  var BUDGET={quiz:240,code:540,review:180,explain:180};
+  var ORDER=['intro','quiz','code','review','explain','end'];
+
+  /* ---------- κατάσταση (μένει σε αυτόν τον περιηγητή, ώστε μια ανανέωση να μη μηδενίζει την προσπάθεια) ---------- */
+  var KEY='caravel-exercise-v3';
+  function blank(){return {started:false,done:false,tab:'intro',quiz:{},review:[],revealed:false,recall:'',ex1:'',ex2:'',code:starter,
+         t:{quiz:0,code:0,review:0,explain:0},total:0,blurs:0,pastes:0,runs:0,pass:null,ntests:17};}
+  var S=blank();
+  try{var raw=localStorage.getItem(KEY);if(raw){var o=JSON.parse(raw);if(o&&typeof o==='object'){for(var k in S){if(o[k]!==undefined)S[k]=o[k];}}}}catch(e){}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+
+  /* ---------- καρτέλες ---------- */
+  var tabs=document.querySelectorAll('nav button');
+  function go(p){
+    if(p!=='intro'&&!S.started)return;
+    S.tab=p;
+    tabs.forEach(function(x){x.setAttribute('aria-selected',x.getAttribute('data-p')===p?'true':'false');x.disabled=!S.started&&x.getAttribute('data-p')!=='intro';});
+    ORDER.forEach(function(n){$('p-'+n).classList.toggle('on',n===p);});
+    if(p==='explain')renderLines();
+    paintClock();save();window.scrollTo(0,0);
+  }
+  tabs.forEach(function(b){b.addEventListener('click',function(){go(b.getAttribute('data-p'));});});
+  document.querySelectorAll('[data-go]').forEach(function(b){b.addEventListener('click',function(){go(b.getAttribute('data-go'));});});
+  $('start').addEventListener('click',function(){S.started=true;go('quiz');});
+
+  /* ---------- χρόνος ---------- */
+  function paintClock(){
+    $('t-total').textContent=mmss(S.total);$('t-total').className=S.total>1200?'over':'';
+    var b=BUDGET[S.tab];
+    if(b){$('t-sec').textContent=mmss(S.t[S.tab])+' / '+mmss(b);$('t-sec').className=S.t[S.tab]>b?'over':'';}
+    else{$('t-sec').textContent='—';$('t-sec').className='';}
+    $('s-blur').textContent=S.blurs;$('s-paste').textContent=S.pastes;$('s-runs').textContent=S.runs;
+  }
+  setInterval(function(){
+    if(!S.started||S.done)return;
+    S.total++;if(BUDGET[S.tab])S.t[S.tab]++;
+    paintClock();if(S.total%5===0)save();
+  },1000);
+
+  /* ---------- αλλαγές καρτέλας ---------- */
+  var lastLeave=0;
+  function leave(){if(!S.started||S.done)return;var n=Date.now();if(n-lastLeave<1000)return;lastLeave=n;S.blurs++;paintClock();save();}
+  window.addEventListener('blur',leave);
+  document.addEventListener('visibilitychange',function(){if(document.hidden)leave();});
+
+  /* ---------- ερωτήσεις ---------- */
+  function renderQuiz(){
+    var host=$('quiz');host.innerHTML='';
+    QUIZ.forEach(function(item,i){
+      var fs=el('fieldset','q');fs.appendChild(el('legend',null,'Ερώτηση '+(i+1)+' από '+QUIZ.length));
+      fs.appendChild(el('p',null,item.q));
+      if(item.code)fs.appendChild(el('pre','snip',item.code));
+      item.opts.forEach(function(o,j){
+        var lab=el('label','opt');var inp=document.createElement('input');
+        inp.type='radio';inp.name='q'+i;inp.id='q'+i+'o'+j;inp.value=j;if(S.quiz[i]===j)inp.checked=true;
+        inp.addEventListener('change',function(){S.quiz[i]=j;quizCount();save();});
+        lab.appendChild(inp);lab.appendChild(el('span',item.plain?'t':null,o));fs.appendChild(lab);
+      });
+      host.appendChild(fs);
+    });
+    quizCount();
+  }
+  function quizCount(){var n=0;for(var k in S.quiz)n++;$('quizcount').textContent='Έχεις απαντήσει '+n+' από '+QUIZ.length;}
+  function quizScore(){var ok=0,wrong=[];QUIZ.forEach(function(item,i){if(S.quiz[i]===item.a)ok++;else wrong.push((i+1)+(S.quiz[i]===undefined?' (χωρίς απάντηση)':''));});return {ok:ok,wrong:wrong};}
+
+  /* ---------- αξιολόγηση κώδικα ---------- */
+  function renderReview(){
+    var host=$('reviewopts');host.innerHTML='';
+    REVIEW.forEach(function(item,i){
+      var lab=el('label','opt');var inp=document.createElement('input');
+      inp.type='checkbox';inp.id='r'+i;inp.checked=S.review.indexOf(i)>=0;
+      inp.addEventListener('change',function(){var at=S.review.indexOf(i);if(inp.checked&&at<0)S.review.push(i);if(!inp.checked&&at>=0)S.review.splice(at,1);save();});
+      lab.appendChild(inp);lab.appendChild(el('span','t',item.t));host.appendChild(lab);
+    });
+    $('reviewlist').hidden=!S.revealed;$('revealrow').hidden=S.revealed;$('recall').readOnly=S.revealed;
+  }
+  $('reveal').addEventListener('click',function(){S.revealed=true;renderReview();save();});
+  function reviewScore(){var hit=0,decoy=0;S.review.forEach(function(i){if(REVIEW[i].real)hit++;else decoy++;});return {hit:hit,decoy:decoy,score:Math.max(0,hit-decoy)};}
+
+  /* ---------- πλαίσια κειμένου ---------- */
+  code.value=S.code;$('recall').value=S.recall;$('ex1').value=S.ex1;$('ex2').value=S.ex2;
+  code.addEventListener('input',function(){S.code=code.value;save();});
+  [['recall','recall'],['ex1','ex1'],['ex2','ex2']].forEach(function(p){$(p[0]).addEventListener('input',function(){S[p[1]]=$(p[0]).value;save();});});
+  code.addEventListener('keydown',function(e){
+    if(e.key==='Tab'&&!e.shiftKey){e.preventDefault();code.setRangeText('  ',code.selectionStart,code.selectionEnd,'end');S.code=code.value;save();}
+  });
+  /* επιτρέπεται η επικόλληση μόνο κειμένου που αντιγράφηκε από τα πλαίσια αυτής της σελίδας */
+  var internal='';
+  [code,$('recall'),$('ex1'),$('ex2')].forEach(function(f){
+    function remember(){var s=f.selectionStart,e=f.selectionEnd;if(e>s)internal=f.value.slice(s,e);}
+    f.addEventListener('copy',remember);f.addEventListener('cut',remember);
+    f.addEventListener('paste',function(e){
+      var txt=(e.clipboardData||window.clipboardData).getData('text');
+      if(txt!==internal){e.preventDefault();S.pastes++;paintClock();save();
+        toast('Η επικόλληση κειμένου από άλλη πηγή είναι απενεργοποιημένη. Μπορείς να επικολλήσεις μόνο κείμενο που αντέγραψες από τα πλαίσια αυτής της σελίδας.');}
+    });
+    f.addEventListener('drop',function(e){e.preventDefault();});
+  });
+
+  function renderLines(){
+    var ol=$('lines');ol.innerHTML='';
+    code.value.split('\n').forEach(function(l){ol.appendChild(el('li',null,l===''?' ':l));});
+  }
+
+  /* ---------- αυτόματες δοκιμές (εκτελούνται σε Worker που φτιάχνεται από Blob) ---------- */
+  function harness(){
+    var T=[];
+    function test(name,fn){T.push({name:name,fn:fn});}
+    function show(v){try{return JSON.stringify(v);}catch(e){return String(v);}}
+    function differ(a,b){return 'Αναμενόμενο αποτέλεσμα: '+show(b)+'. Πραγματικό: '+show(a)+'.';}
+    var assert={
+      equal:function(a,b){if(a!==b)throw new Error(differ(a,b));},
+      deepEqual:function(a,b){if(show(a)!==show(b))throw new Error(differ(a,b));},
+      ok:function(v,m){if(!v)throw new Error(m||'Η συνθήκη δεν ισχύει.');},
+      throws:function(fn){var t=false;try{fn();}catch(e){t=true;}if(!t)throw new Error('Η συνάρτηση έπρεπε να προκαλέσει σφάλμα (throw new Error), αλλά δεν το έκανε.');}
+    };
+    var ex=module.exports||{};
+    var overlaps=ex.overlaps, rentalDays=ex.rentalDays, findAvailableCars=ex.findAvailableCars;
+    function need(f,n){if(typeof f!=='function')throw new Error('Η συνάρτηση '+n+' δεν βρέθηκε στο module.exports.');}
+    var cars=[{id:'c3',category:'suv'},{id:'c1',category:'economy'},{id:'c2',category:'economy'}];
+    var bookings=[
+      {id:'b1',carId:'c1',start:'2026-07-10T10:00:00Z',end:'2026-07-15T10:00:00Z',status:'confirmed'},
+      {id:'b2',carId:'c2',start:'2026-07-10T10:00:00Z',end:'2026-07-15T10:00:00Z',status:'cancelled'}];
+    function ids(r){if(!Array.isArray(r))throw new Error('Η συνάρτηση έπρεπε να επιστρέψει πίνακα (array), αλλά επέστρεψε: '+show(r));return r.map(function(c){return c.id;});}
+
+    test('overlaps: διαστήματα που επικαλύπτονται εν μέρει',function(){need(overlaps,'overlaps');assert.equal(overlaps({start:'2026-07-01T10:00:00Z',end:'2026-07-05T10:00:00Z'},{start:'2026-07-04T10:00:00Z',end:'2026-07-08T10:00:00Z'}),true);});
+    test('overlaps: το ένα διάστημα βρίσκεται μέσα στο άλλο',function(){need(overlaps,'overlaps');assert.equal(overlaps({start:'2026-07-01T10:00:00Z',end:'2026-07-20T10:00:00Z'},{start:'2026-07-04T10:00:00Z',end:'2026-07-08T10:00:00Z'}),true);});
+    test('overlaps: διαστήματα χωρίς καμία επαφή',function(){need(overlaps,'overlaps');assert.equal(overlaps({start:'2026-07-01T10:00:00Z',end:'2026-07-02T10:00:00Z'},{start:'2026-08-01T10:00:00Z',end:'2026-08-02T10:00:00Z'}),false);});
+    test('overlaps: το ένα τελειώνει ακριβώς όταν αρχίζει το άλλο (δεν επικαλύπτονται)',function(){need(overlaps,'overlaps');assert.equal(overlaps({start:'2026-07-01T10:00:00Z',end:'2026-07-05T10:00:00Z'},{start:'2026-07-05T10:00:00Z',end:'2026-07-08T10:00:00Z'}),false);});
+    test('overlaps: η ίδια στιγμή γραμμένη σε διαφορετική ζώνη ώρας',function(){need(overlaps,'overlaps');
+      assert.equal(overlaps({start:'2026-07-01T10:00:00Z',end:'2026-07-05T13:00:00+03:00'},{start:'2026-07-05T10:00:00Z',end:'2026-07-08T10:00:00Z'}),false);
+      assert.equal(overlaps({start:'2026-07-01T10:00:00Z',end:'2026-07-05T13:00:00+03:00'},{start:'2026-07-05T09:59:00Z',end:'2026-07-08T10:00:00Z'}),true);});
+    test('rentalDays: ακριβώς 24 ώρες χρεώνονται ως 1 ημέρα',function(){need(rentalDays,'rentalDays');assert.equal(rentalDays('2026-07-01T10:00:00Z','2026-07-02T10:00:00Z'),1);});
+    test('rentalDays: 24 ώρες και 1 λεπτό χρεώνονται ως 2 ημέρες',function(){need(rentalDays,'rentalDays');assert.equal(rentalDays('2026-07-01T10:00:00Z','2026-07-02T10:01:00Z'),2);});
+    test('rentalDays: λιγότερο από 24 ώρες χρεώνεται ως 1 ημέρα',function(){need(rentalDays,'rentalDays');assert.equal(rentalDays('2026-07-01T10:00:00Z','2026-07-01T14:00:00Z'),1);});
+    test('rentalDays: 7 ολόκληρες ημέρες',function(){need(rentalDays,'rentalDays');assert.equal(rentalDays('2026-07-01T10:00:00Z','2026-07-08T10:00:00Z'),7);});
+    test('rentalDays: σε μη έγκυρο διάστημα προκαλείται σφάλμα (Error)',function(){need(rentalDays,'rentalDays');
+      assert.throws(function(){rentalDays('2026-07-02T10:00:00Z','2026-07-01T10:00:00Z');});
+      assert.throws(function(){rentalDays('2026-07-01T10:00:00Z','2026-07-01T10:00:00Z');});
+      assert.throws(function(){rentalDays('not-a-date','2026-07-01T10:00:00Z');});});
+    test('findAvailableCars: χωρίς κρατήσεις επιστρέφονται όλα, ταξινομημένα κατά id',function(){need(findAvailableCars,'findAvailableCars');
+      assert.deepEqual(ids(findAvailableCars(cars,[],'2026-07-01T10:00:00Z','2026-07-03T10:00:00Z')),['c1','c2','c3']);});
+    test('findAvailableCars: το κλεισμένο αυτοκίνητο δεν επιστρέφεται',function(){need(findAvailableCars,'findAvailableCars');
+      assert.deepEqual(ids(findAvailableCars(cars,bookings,'2026-07-12T10:00:00Z','2026-07-13T10:00:00Z')),['c2','c3']);});
+    test('findAvailableCars: οι ακυρωμένες κρατήσεις δεν δεσμεύουν το αυτοκίνητο',function(){need(findAvailableCars,'findAvailableCars');
+      assert.ok(ids(findAvailableCars(cars,bookings,'2026-07-10T10:00:00Z','2026-07-15T10:00:00Z')).indexOf('c2')>=0,'Το c2 έχει μόνο ακυρωμένη κράτηση, άρα πρέπει να είναι διαθέσιμο.');});
+    test('findAvailableCars: επιτρέπεται κράτηση αμέσως πριν ή αμέσως μετά από άλλη',function(){need(findAvailableCars,'findAvailableCars');
+      assert.ok(ids(findAvailableCars(cars,bookings,'2026-07-15T10:00:00Z','2026-07-18T10:00:00Z')).indexOf('c1')>=0,'Το c1 πρέπει να είναι διαθέσιμο όταν η παραλαβή γίνεται ακριβώς τη στιγμή που λήγει η προηγούμενη κράτηση.');
+      assert.ok(ids(findAvailableCars(cars,bookings,'2026-07-07T10:00:00Z','2026-07-10T10:00:00Z')).indexOf('c1')>=0,'Το c1 πρέπει να είναι διαθέσιμο όταν η επιστροφή γίνεται ακριβώς τη στιγμή που αρχίζει η επόμενη κράτηση.');});
+    test('findAvailableCars: φιλτράρισμα ανά κατηγορία',function(){need(findAvailableCars,'findAvailableCars');
+      assert.deepEqual(ids(findAvailableCars(cars,bookings,'2026-07-12T10:00:00Z','2026-07-13T10:00:00Z',{category:'economy'})),['c2']);});
+    test('findAvailableCars: οι πίνακες που δόθηκαν μένουν αμετάβλητοι',function(){need(findAvailableCars,'findAvailableCars');
+      var c=JSON.stringify(cars),b=JSON.stringify(bookings);
+      ids(findAvailableCars(cars,bookings,'2026-07-12T10:00:00Z','2026-07-13T10:00:00Z'));
+      assert.equal(JSON.stringify(cars),c);assert.equal(JSON.stringify(bookings),b);});
+    test('findAvailableCars: σε μη έγκυρο διάστημα προκαλείται σφάλμα (Error)',function(){need(findAvailableCars,'findAvailableCars');
+      assert.throws(function(){findAvailableCars(cars,bookings,'2026-07-13T10:00:00Z','2026-07-12T10:00:00Z');});});
+
+    var out=[];
+    T.forEach(function(t){try{t.fn();out.push({name:t.name,ok:true});}catch(e){out.push({name:t.name,ok:false,msg:String(e&&e.message||e)});}});
+    __done(out);
+  }
+  function buildSource(userCode){
+    return 'var module={exports:{}};var exports=module.exports;\nfunction __done(r){postMessage({results:r});}\n'+userCode+'\n;('+harness.toString()+')();';
+  }
+  /* επιστρέφει {results} ή {error} */
+  function execTests(){
+    return new Promise(function(resolve){
+      var src=buildSource(code.value),w,url,timer,settled=false;
+      function fin(v){if(settled)return;settled=true;clearTimeout(timer);if(w)w.terminate();if(url)URL.revokeObjectURL(url);resolve(v);}
+      try{url=URL.createObjectURL(new Blob([src],{type:'text/javascript'}));w=new Worker(url);}
+      catch(e){
+        try{var out=null;(new Function('postMessage',src))(function(m){out=m;});fin(out?{results:out.results}:{error:'Οι δοκιμές δεν επέστρεψαν αποτέλεσμα.'});}
+        catch(err){fin({error:'Σφάλμα στον κώδικα: '+(err&&err.message||err)});}
+        return;
+      }
+      timer=setTimeout(function(){fin({error:'Ο κώδικας δεν ολοκληρώθηκε μέσα σε 5 δευτερόλεπτα. Έλεγξε μήπως υπάρχει βρόχος που δεν τερματίζει.'});},5000);
+      w.onmessage=function(ev){fin({results:ev.data.results});};
+      w.onerror=function(ev){if(ev.preventDefault)ev.preventDefault();
+        fin({error:'Σφάλμα στον κώδικα'+(ev.lineno?' (περίπου στη γραμμή '+Math.max(1,ev.lineno-2)+')':'')+': '+(ev.message||'άγνωστο σφάλμα')});};
+    });
+  }
+  function renderResults(r){
+    var ul=$('results');ul.innerHTML='';
+    if(r.error){$('summary').textContent='Σφάλμα — 0 από '+S.ntests+' δοκιμές πέρασαν';
+      var li=el('li','bad');li.appendChild(el('span','m','✗'));li.appendChild(el('span','n',r.error));ul.appendChild(li);return 0;}
+    var pass=r.results.filter(function(x){return x.ok;}).length;
+    $('summary').textContent=pass+' από '+r.results.length+' δοκιμές πέρασαν';
+    r.results.forEach(function(x){
+      var li=el('li',x.ok?'ok':'bad');li.appendChild(el('span','m',x.ok?'✓':'✗'));li.appendChild(el('span','n',x.name));
+      if(!x.ok&&x.msg)li.appendChild(el('span','d',x.msg));ul.appendChild(li);
+    });
+    return pass;
+  }
+  function runTests(count){
+    $('runmsg').textContent='Εκτελούνται…';
+    return execTests().then(function(r){
+      if(count)S.runs++;
+      S.pass=renderResults(r);if(r.results)S.ntests=r.results.length;
+      $('runmsg').textContent='';paintClock();save();return S.pass;
+    });
+  }
+  $('run').addEventListener('click',function(){runTests(true);});
+
+  /* ---------- σύνοψη ---------- */
+  function showSummary(){
+    var q=quizScore(),r=reviewScore();
+    var rows=[
+      ['1 · Ερωτήσεις',q.ok+' από '+QUIZ.length,q.wrong.length?'Λανθασμένες: '+q.wrong.join(', '):'Όλες σωστές'],
+      ['2 · Κώδικας',S.pass+' από '+S.ntests+' δοκιμές','Εκτελέσεις: '+S.runs],
+      ['3 · Αξιολόγηση κώδικα',r.score+' από 5','Σωστές επιλογές: '+r.hit+' · Λανθασμένες επιλογές: '+r.decoy+(S.revealed?'':' · Δεν εμφάνισε τη λίστα')],
+      ['Χρόνος','Σύνολο '+mmss(S.total),'Ερωτήσεις '+mmss(S.t.quiz)+' · Κώδικας '+mmss(S.t.code)+' · Αξιολόγηση '+mmss(S.t.review)+' · Εξήγηση '+mmss(S.t.explain)],
+      ['Προσπάθεια','Αλλαγές καρτέλας: '+S.blurs,'Επικολλήσεις που απορρίφθηκαν: '+S.pastes]
+    ];
+    var tb=$('sumtable');tb.innerHTML='';
+    var hr=el('tr');['Μέρος','Αποτέλεσμα','Λεπτομέρειες'].forEach(function(h){hr.appendChild(el('th',null,h));});tb.appendChild(hr);
+    rows.forEach(function(row){var tr=el('tr');row.forEach(function(c){tr.appendChild(el('td',null,c));});tb.appendChild(tr);});
+    function written(v){v=(v||'').trim();return v?v:'(δεν έγραψε τίποτα)';}
+    $('sumtext').textContent='Caravel — τεχνική άσκηση · σύνοψη\n'+rows.map(function(row){return row[0]+': '+row[1]+' ('+row[2]+')';}).join('\n')+
+      '\n\nΜέρος 3 — τα προβλήματα που έγραψε πριν δει τη λίστα:\n'+written(S.recall)+
+      '\n\nΜέρος 4 — πώς εξηγεί τον κώδικά της:\n'+written(S.ex1)+
+      '\n\nΜέρος 4 — τι δεν πρόλαβε και πώς θα συνέχιζε:\n'+written(S.ex2);
+    $('sumwrap').hidden=false;$('endhint').hidden=true;
+  }
+  $('finish').addEventListener('click',function(){
+    $('finmsg').textContent='Εκτελούνται οι δοκιμές…';
+    runTests(false).then(function(){S.done=true;save();$('finmsg').textContent='';showSummary();go('end');});
+  });
+  $('copysum').addEventListener('click',function(){
+    var b=$('copysum'),old=b.textContent,text=$('sumtext').textContent;
+    function done(m){b.textContent=m;setTimeout(function(){b.textContent=old;},1800);}
+    function fallback(){var r=document.createRange();r.selectNodeContents($('sumtext'));var s=getSelection();s.removeAllRanges();s.addRange(r);done('Το κείμενο επιλέχθηκε. Πάτησε Ctrl+C.');}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){done('Αντιγράφηκε');},fallback);}else fallback();
+  });
+  $('resetall').addEventListener('click',function(){
+    var b=$('resetall'),label='Νέα προσπάθεια (διαγραφή όλων)';
+    if(!b.dataset.armed){b.dataset.armed='1';b.textContent='Πάτησε ξανά για διαγραφή';setTimeout(function(){delete b.dataset.armed;b.textContent=label;},3000);return;}
+    try{localStorage.removeItem(KEY);}catch(e){}
+    S=blank();
+    code.value=starter;$('recall').value='';$('ex1').value='';$('ex2').value='';delete b.dataset.armed;b.textContent=label;
+    $('sumwrap').hidden=true;$('endhint').hidden=false;$('summary').textContent='—';
+    $('results').innerHTML='';$('results').appendChild(el('li','empty','Δεν έχεις εκτελέσει ακόμη τις δοκιμές.'));
+    renderQuiz();renderReview();go('intro');
+  });
+
+  /* ---------- εκκίνηση ---------- */
+  renderQuiz();renderReview();
+  if(S.done){showSummary();}
+  go(S.started?S.tab:'intro');
+})();
+</script>
+</body>
+</html>
